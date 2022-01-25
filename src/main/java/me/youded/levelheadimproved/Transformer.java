@@ -56,7 +56,7 @@ public class Transformer implements ClassFileTransformer {
                                 method.instructions.remove(insn.getNext());
                                 method.instructions.remove(insn.getPrevious());
                                 method.instructions.remove(insn);
-                                this.foundLevelHeadImprovedFunction = true;/*&& ((LdcInsnNode)insn).cst.equals("Level: ")*/
+                                this.foundLevelHeadImprovedFunction = true;/
                             }
                         }
                         for(AbstractInsnNode insn : method.instructions) {
