@@ -49,7 +49,6 @@ public class Transformer implements ClassFileTransformer {
                         System.out.println(insn.getOpcode());
                     }
                     if(!(this.foundLevelHeadImprovedFunction && this.foundlevelstring)){
-                        System.out.println("Started looking for level");
                         for(AbstractInsnNode insn : method.instructions) {
                             if(insn.getOpcode() == Opcodes.BIPUSH && insn.getPrevious().getOpcode() == Opcodes.INVOKESTATIC && insn.getNext().getOpcode() == Opcodes.INVOKEVIRTUAL && insn.getNext().getNext().getOpcode() == Opcodes.BIPUSH && insn.getNext().getNext().getNext().getOpcode() == Opcodes.IADD) {
                                 method.instructions.set(insn.getNext().getNext().getNext(), new InsnNode(Opcodes.ICONST_M1));
@@ -57,13 +56,11 @@ public class Transformer implements ClassFileTransformer {
                                 method.instructions.remove(insn.getNext());
                                 method.instructions.remove(insn.getPrevious());
                                 method.instructions.remove(insn);
-                                System.out.print("Disabled random level");
                                 this.foundLevelHeadImprovedFunction = true;/*&& ((LdcInsnNode)insn).cst.equals("Level: ")*/
                             }
                         }
                         for(AbstractInsnNode insn : method.instructions) {
                             if (insn.getOpcode() == Opcodes.ILOAD && insn.getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getOpcode() == Opcodes.NEW && insn.getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.NEW){
-                                System.out.print("Added level string");
                                 method.instructions.set(insn.getNext(), new LdcInsnNode(this.levelString));
                                 this.foundlevelstring = true;
                             }
