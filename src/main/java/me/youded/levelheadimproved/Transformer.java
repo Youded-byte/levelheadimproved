@@ -15,11 +15,28 @@ public class Transformer implements ClassFileTransformer {
     private Boolean foundhttpfunction = false;
     private Boolean foundlevelstring = false;
     private String levelString;
+    private int nickLevel;
     
-    Transformer(String levelString){
-        this.levelString = levelString;
+    Transformer(String args){
+        String[] parts = args.split("@");
+        if(parts.length > 1) {
+        try {this.nickLevel = Integer.parseInt(parts[1]);}
+            catch(Exception e){ 
+                e.printStackTrace();
+                this.nickLevel = -1;
+            }
+        } else {
+            this.nickLevel = -1;
+        }
+        this.levelString = parts[0];
     }
-
+    private AbstractInsnNode nicklevelobject() {
+        if(this.nickLevel == -1){
+            return new InsnNode(Opcodes.ICONST_M1);
+        } else {
+            return new LdcInsnNode(this.nickLevel);
+        }
+    }
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         if (classfileBuffer == null || classfileBuffer.length == 0) {
@@ -45,25 +62,19 @@ public class Transformer implements ClassFileTransformer {
                         .anyMatch("Level: "::equals);
                 
                 if (hasString) {
-                    for(AbstractInsnNode insn : method.instructions) {
-                        System.out.println(insn.getOpcode());
-                    }
                     if(!(this.foundLevelHeadImprovedFunction && this.foundlevelstring)){
-                        System.out.println("Started looking for level");
                         for(AbstractInsnNode insn : method.instructions) {
                             if(insn.getOpcode() == Opcodes.BIPUSH && insn.getPrevious().getOpcode() == Opcodes.INVOKESTATIC && insn.getNext().getOpcode() == Opcodes.INVOKEVIRTUAL && insn.getNext().getNext().getOpcode() == Opcodes.BIPUSH && insn.getNext().getNext().getNext().getOpcode() == Opcodes.IADD) {
-                                method.instructions.set(insn.getNext().getNext().getNext(), new InsnNode(Opcodes.ICONST_M1));
+                                method.instructions.set(insn.getNext().getNext().getNext(), nicklevelobject());
                                 method.instructions.remove(insn.getNext().getNext());
                                 method.instructions.remove(insn.getNext());
                                 method.instructions.remove(insn.getPrevious());
                                 method.instructions.remove(insn);
-                                System.out.print("Disabled random level");
-                                this.foundLevelHeadImprovedFunction = true;/*&& ((LdcInsnNode)insn).cst.equals("Level: ")*/
+                                this.foundLevelHeadImprovedFunction = true;
                             }
                         }
                         for(AbstractInsnNode insn : method.instructions) {
                             if (insn.getOpcode() == Opcodes.ILOAD && insn.getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getOpcode() == Opcodes.NEW && insn.getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.NEW){
-                                System.out.print("Added level string");
                                 method.instructions.set(insn.getNext(), new LdcInsnNode(this.levelString));
                                 this.foundlevelstring = true;
                             }
@@ -76,7 +87,7 @@ public class Transformer implements ClassFileTransformer {
                 for (MethodNode method : cn.methods) {
                     for(AbstractInsnNode insn : method.instructions){
                         if(insn.getOpcode() == Opcodes.BIPUSH && insn.getPrevious().getOpcode() == Opcodes.INVOKESTATIC && insn.getNext().getOpcode() == Opcodes.INVOKEVIRTUAL && insn.getNext().getNext().getOpcode() == Opcodes.BIPUSH && insn.getNext().getNext().getNext().getOpcode() == Opcodes.IADD) {
-                            method.instructions.set(insn.getNext().getNext().getNext(), new InsnNode(Opcodes.ICONST_M1));
+                            method.instructions.set(insn.getNext().getNext().getNext(), nicklevelobject());
                             method.instructions.remove(insn.getNext().getNext());
                             method.instructions.remove(insn.getNext());
                             method.instructions.remove(insn.getPrevious());
