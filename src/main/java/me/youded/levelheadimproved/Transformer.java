@@ -14,14 +14,16 @@ public class Transformer implements ClassFileTransformer {
     private Boolean foundLevelHeadImprovedFunction = false;
     private Boolean foundhttpfunction = false;
     private Boolean foundlevelstring = false;
+    private Boolean levelStringExists = false;
     private String levelString;
     private int nickLevel;
     
     Transformer(String args){
+        if(args != null && !args.isBlank()){
         String[] parts = args.split("@");
         if(parts.length > 1) {
-        try {this.nickLevel = Integer.parseInt(parts[1]);}
-            catch(Exception e){ 
+        try {this.nickLevel = Integer.parseInt(parts[parts.length-1]);}
+            catch(Exception e) {
                 e.printStackTrace();
                 this.nickLevel = -1;
             }
@@ -29,6 +31,10 @@ public class Transformer implements ClassFileTransformer {
             this.nickLevel = -1;
         }
         this.levelString = parts[0];
+        this.levelStringExists = true;
+        } else{
+            this.nickLevel = -1;
+        }
     }
     private AbstractInsnNode nicklevelobject() {
         if(this.nickLevel == -1){
@@ -74,7 +80,7 @@ public class Transformer implements ClassFileTransformer {
                             }
                         }
                         for(AbstractInsnNode insn : method.instructions) {
-                            if (insn.getOpcode() == Opcodes.ILOAD && insn.getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getOpcode() == Opcodes.NEW && insn.getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.NEW){
+                            if (levelStringExists && insn.getOpcode() == Opcodes.ILOAD && insn.getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getOpcode() == Opcodes.NEW && insn.getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.DUP && insn.getPrevious().getPrevious().getPrevious().getPrevious().getOpcode() == Opcodes.NEW){
                                 method.instructions.set(insn.getNext(), new LdcInsnNode(this.levelString));
                                 this.foundlevelstring = true;
                             }
